@@ -1,0 +1,4 @@
+employee,jira_key,summary,due_date,reported_status,requested_due_date,comment,reply_received,reply_time
+Jane Doe,SYS-231,Fix login timeout,2026-07-01,Completed,,Completed yesterday,Yes,2026-07-11 10:15:00
+Jane Doe,SYS-245,Update API docs,2026-07-05,In Progress,2026-07-15,Waiting for hardware,Yes,2026-07-11 10:15:00
+John Smith,SYS-280,Server migration,2026-07-08,,,,No,

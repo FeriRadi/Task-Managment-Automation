@@ -1,0 +1,75 @@
+# =============================================================================
+# Application configuration
+# Secrets (credentials, tokens) live in .env, NOT here.
+# Everything that is safe to version-control lives in this file.
+# =============================================================================
+
+jira:
+  # JQL used to find candidate issues. Placeholders {reporter} and {today}
+  # are substituted at runtime. Keep Resolution = Unresolved so completed
+  # issues are excluded at the source.
+  jql: 'reporter = "{reporter}" AND resolution = Unresolved AND duedate <= "{today}" ORDER BY duedate ASC'
+  fields:
+    - key
+    - summary
+    - duedate
+    - assignee
+    - status
+    - resolution
+  request_timeout_seconds: 30
+  max_results: 200
+  verify_ssl: true
+
+outlook:
+  # Name of the Outlook account/store to send from. Leave blank to use
+  # the default profile/account.
+  send_from_account: ""
+  # Folder name to scan for replies (default Inbox).
+  inbox_folder_name: "Inbox"
+  # How many days back to look when scanning for replies.
+  reply_lookback_days: 7
+  # Delay (seconds) between sending consecutive emails, to be a good
+  # citizen with the mail server / avoid Outlook throttling.
+  send_delay_seconds: 2
+
+email:
+  subject_prefix: "[Jira Reminder]"
+  reminder_id_prefix: "REM"
+  template_file: "templates/reminder_email.html"
+  sender_display_name: "Jira Task Reminder Bot"
+
+schedule:
+  # Weekly job: reminders sent Saturday morning, replies processed
+  # Saturday afternoon. Times are 24h HH:MM, local machine time.
+  send_reminders_day: "saturday"
+  send_reminders_time: "08:00"
+  process_replies_day: "saturday"
+  process_replies_time: "16:00"
+
+database:
+  path: "database/reminders.db"
+  schema_file: "database/schema.sql"
+  busy_timeout_ms: 5000
+
+reports:
+  output_folder: "reports"
+  formats:
+    - html
+    - xlsx
+    - csv
+  filename_prefix: "jira_reminder_report"
+
+logging:
+  level: "INFO"
+  log_folder: "logs"
+  log_file: "app.log"
+  max_bytes: 5242880 # 5 MB
+  backup_count: 10
+  format: "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"
+
+validation:
+  allowed_statuses:
+    - "Completed"
+    - "In Progress"
+    - "Blocked"
+  date_format: "%Y-%m-%d"

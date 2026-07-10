@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+    body { font-family: Segoe UI, Arial, sans-serif; font-size: 14px; color: #222; }
+    table { border-collapse: collapse; width: 100%; margin-top: 12px; margin-bottom: 12px; }
+    th, td { border: 1px solid #ccc; padding: 6px 10px; text-align: left; }
+    th { background-color: #0b5394; color: #fff; }
+    tr:nth-child(even) { background-color: #f5f7fa; }
+    .reminder-id { font-family: Consolas, monospace; font-weight: bold; }
+    .instructions { background-color: #fff3cd; border: 1px solid #ffe08a; padding: 10px 14px; margin-top: 16px; }
+    .template-block { font-family: Consolas, monospace; background-color: #f0f0f0; padding: 10px 14px; white-space: pre; }
+    .footer { color: #777; font-size: 12px; margin-top: 20px; }
+</style>
+</head>
+<body>
+    <p>Hello {{ assignee_name }},</p>
+
+    <p>
+        The following Jira task(s) assigned to you are currently overdue
+        (due date is today or earlier) and still unresolved. Please review
+        them ahead of our weekly meeting.
+    </p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Jira Key</th>
+                <th>Summary</th>
+                <th>Due Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for task in tasks %}
+            <tr>
+                <td>{{ task.jira_key }}</td>
+                <td>{{ task.summary }}</td>
+                <td>{{ task.due_date }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="instructions">
+        <p><strong>Action required:</strong> Please reply to this email using the exact
+        template below so your update can be processed automatically. Do not
+        change the layout, and keep one row per Jira key.</p>
+
+        <div class="template-block">Task Update
+
+Employee: {{ assignee_name }}
+Date: YYYY-MM-DD
+
+| Jira Key | Status | Requested Due Date | Comment |
+| -------- | ------ | ------------------- | ------- |
+{% for task in tasks -%}
+| {{ task.jira_key }} | (Completed / In Progress / Blocked) | (YYYY-MM-DD or -) | (short comment) |
+{% endfor %}</div>
+    </div>
+
+    <p class="footer">
+        Reminder ID: <span class="reminder-id">{{ reminder_id }}</span><br>
+        This is an automated reminder. Please do not modify the Reminder ID
+        above, as it is used to match your reply to the correct tasks.
+    </p>
+</body>
+</html>
