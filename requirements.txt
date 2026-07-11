@@ -1,8 +1,8 @@
-pywin32==306
+pywin32==307
 requests==2.32.3
 python-dotenv==1.0.1
 Jinja2==3.1.4
-pandas==2.2.2
+pandas>=2.2.3
 pydantic==2.8.2
 pydantic-settings==2.4.0
 schedule==1.2.2

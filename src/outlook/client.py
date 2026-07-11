@@ -9,6 +9,7 @@ Import of ``win32com.client`` is done lazily inside the class so this
 module can still be imported (and partially unit-tested with mocks) on
 non-Windows machines / CI systems that don't have pywin32's COM support.
 """
+
 from __future__ import annotations
 
 import logging
@@ -95,7 +96,9 @@ class OutlookClient:
         except OutlookClientError:
             raise
         except Exception as exc:  # pragma: no cover
-            raise OutlookClientError("Could not access the Outlook Inbox folder") from exc
+            raise OutlookClientError(
+                "Could not access the Outlook Inbox folder"
+            ) from exc
 
     # ------------------------------------------------------------------
     # Sending
@@ -103,14 +106,6 @@ class OutlookClient:
     def send_html_email(
         self, to_email: str, subject: str, html_body: str
     ) -> tuple[Optional[str], Optional[str], Optional[str]]:
-        """Send an HTML email and return (entry_id, conversation_id,
-        conversation_index) for the sent item, when available.
-
-        Note: Outlook does not always expose ConversationID for an item
-        immediately after ``Send()``; callers should treat these as
-        best-effort and rely on ConversationID/Subject/ReminderID matching
-        when scanning replies later.
-        """
         self._connect()
         try:
             mail = self._app.CreateItem(OL_MAIL_ITEM)
@@ -120,12 +115,24 @@ class OutlookClient:
             if self._settings.outlook.send_from_account:
                 mail.SentOnBehalfOfName = self._settings.outlook.send_from_account
             mail.Send()
-        except Exception as exc:  # pragma: no cover
+        except Exception as exc:
             raise OutlookClientError(f"Failed to send email to {to_email}") from exc
 
-        entry_id = getattr(mail, "EntryID", None)
-        conversation_id = getattr(mail, "ConversationID", None)
-        conversation_index = getattr(mail, "ConversationIndex", None)
+        # Wrap metadata extraction in a try-except block to handle
+        # cases where the mail object becomes invalid immediately after Send()
+        entry_id = None
+        conversation_id = None
+        conversation_index = None
+
+        try:
+            entry_id = getattr(mail, "EntryID", None)
+            conversation_id = getattr(mail, "ConversationID", None)
+            conversation_index = getattr(mail, "ConversationIndex", None)
+        except Exception:
+            # Log that we couldn't retrieve metadata, but do not crash the app
+            logger.debug(
+                "Could not retrieve metadata for sent item; item may have been moved by Outlook."
+            )
 
         time.sleep(self._settings.outlook.send_delay_seconds)
         return entry_id, conversation_id, conversation_index
@@ -138,7 +145,9 @@ class OutlookClient:
         window, most recent first.
         """
         inbox = self._get_inbox()
-        cutoff = datetime.now() - timedelta(days=self._settings.outlook.reply_lookback_days)
+        cutoff = datetime.now() - timedelta(
+            days=self._settings.outlook.reply_lookback_days
+        )
 
         try:
             items = inbox.Items
