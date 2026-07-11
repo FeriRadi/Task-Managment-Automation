@@ -15,7 +15,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Iterable, Iterator, Optional
 
 from src.config_loader import Settings
@@ -145,7 +145,8 @@ class OutlookClient:
         window, most recent first.
         """
         inbox = self._get_inbox()
-        cutoff = datetime.now() - timedelta(
+        # تغییر در اینجا: استفاده از astimezone() برای ایجاد تاریخ دارای منطقه زمانی (Aware)
+        cutoff = datetime.now().astimezone() - timedelta(
             days=self._settings.outlook.reply_lookback_days
         )
 
@@ -162,6 +163,7 @@ class OutlookClient:
                 if getattr(item, "Class", 43) != 43:
                     continue
                 received_time = self._to_datetime(getattr(item, "ReceivedTime", None))
+                # حالا مقایسه بین دو تاریخ Aware با موفقیت انجام می‌شود
                 if received_time and received_time < cutoff:
                     break  # sorted descending, so we can stop early
 
